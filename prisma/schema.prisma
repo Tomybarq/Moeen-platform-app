@@ -32,6 +32,7 @@ model User {
   beneficiaryId Int?
   beneficiary   Beneficiary? @relation(fields: [beneficiaryId], references: [id], onDelete: SetNull)
   permissions   UserPermission[]
+  notifications Notification[]
 }
 
 enum RoleType {
@@ -115,4 +116,18 @@ model UserPermission {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, screenId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  titleAr   String?
+  message   String
+  messageAr String?
+  read      Boolean  @default(false)
+  type      String   @default("info") // info, success, warning, error
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

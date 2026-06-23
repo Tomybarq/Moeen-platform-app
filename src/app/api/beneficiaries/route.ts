@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { beneficiarySchema } from "@/lib/zodSchemas";
 import { calculateLocalEligibility } from "@/lib/engine/eligibility";
+import { sendMockNotification } from "@/lib/notifications";
 
 export async function GET(request: Request) {
   try {
@@ -90,6 +91,17 @@ export async function POST(request: Request) {
         notes,
         image: result.data.image,
       },
+    });
+
+    // إرسال تنبيه وهمي عند إضافة مستفيد مع توضيح حالة الاستحقاق
+    await sendMockNotification({
+      userId: session.userId,
+      title: `New beneficiary registered: ${newBeneficiary.name} (Status: ${newBeneficiary.status})`,
+      titleAr: `تم تسجيل مستفيد جديد: ${newBeneficiary.name} (الحالة: ${newBeneficiary.status === "ELIGIBLE" ? "مستحق" : newBeneficiary.status === "PENDING" ? "قيد الدراسة" : "غير مستحق"})`,
+      message: `Beneficiary "${newBeneficiary.name}" has been registered. System eligibility check notes: ${newBeneficiary.notes}`,
+      messageAr: `تم تسجيل المستفيد "${newBeneficiary.name}" في النظام بنجاح. نتيجة فحص الاستحقاق التلقائي: ${newBeneficiary.notes}`,
+      type: newBeneficiary.status === "ELIGIBLE" ? "success" : newBeneficiary.status === "PENDING" ? "info" : "warning",
+      channels: ["in-app", "sms", "email"]
     });
 
     return NextResponse.json({ success: true, beneficiary: newBeneficiary });

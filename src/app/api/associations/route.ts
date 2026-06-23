@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { associationSchema } from "@/lib/zodSchemas";
+import { sendMockNotification } from "@/lib/notifications";
 
 export async function GET(request: Request) {
   try {
@@ -65,6 +66,17 @@ export async function POST(request: Request) {
         name: result.data.name,
         image: result.data.image,
       },
+    });
+
+    // إرسال تنبيه وهمي عند إضافة جمعية
+    await sendMockNotification({
+      userId: session.userId,
+      title: `New association registered: ${newAssociation.name}`,
+      titleAr: `تم تسجيل جمعية جديدة: ${newAssociation.name}`,
+      message: `The association "${newAssociation.name}" has been successfully added to the portal.`,
+      messageAr: `تمت إضافة الجمعية "${newAssociation.name}" بنجاح في لوحة التحكم.`,
+      type: "success",
+      channels: ["in-app", "sms", "email"]
     });
 
     return NextResponse.json({ success: true, association: newAssociation });

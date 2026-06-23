@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { marketerSchema } from "@/lib/zodSchemas";
+import { sendMockNotification } from "@/lib/notifications";
 
 export async function GET(request: Request) {
   try {
@@ -65,6 +66,17 @@ export async function POST(request: Request) {
         name: result.data.name,
         image: result.data.image,
       },
+    });
+
+    // إرسال تنبيه وهمي عند إضافة مسوق
+    await sendMockNotification({
+      userId: session.userId,
+      title: `New marketer registered: ${newMarketer.name}`,
+      titleAr: `تم تسجيل مسوق جديد: ${newMarketer.name}`,
+      message: `The marketer "${newMarketer.name}" has been successfully added to the portal.`,
+      messageAr: `تمت إضافة المسوق "${newMarketer.name}" بنجاح في لوحة التحكم.`,
+      type: "success",
+      channels: ["in-app", "sms", "email"]
     });
 
     return NextResponse.json({ success: true, marketer: newMarketer });

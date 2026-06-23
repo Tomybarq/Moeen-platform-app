@@ -1,0 +1,18 @@
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER,
+    "title" TEXT NOT NULL,
+    "titleAr" TEXT,
+    "message" TEXT NOT NULL,
+    "messageAr" TEXT,
+    "read" BOOLEAN NOT NULL DEFAULT false,
+    "type" TEXT NOT NULL DEFAULT 'info',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
