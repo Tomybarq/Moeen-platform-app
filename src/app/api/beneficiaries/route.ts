@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { beneficiarySchema } from "@/lib/zodSchemas";
+import { calculateLocalEligibility } from "@/lib/engine/eligibility";
 
 export async function GET(request: Request) {
   try {
@@ -60,9 +61,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: result.error.errors[0].message }, { status: 400 });
     }
 
+    // استخراج معايير الاستحقاق اختيارياً من الطلب
+    const { familySize, monthlyIncome, medicalStatus, rent } = body;
+
+    let status = "PENDING";
+    let notes = "لم يتم إجراء تحليل الاستحقاق التلقائي.";
+
+    if (
+      typeof familySize === "number" &&
+      typeof monthlyIncome === "number" &&
+      typeof medicalStatus === "string" &&
+      typeof rent === "number"
+    ) {
+      const eligibility = calculateLocalEligibility({
+        familySize,
+        monthlyIncome,
+        medicalStatus,
+        rent,
+      });
+      status = eligibility.status;
+      notes = eligibility.notes;
+    }
+
     const newBeneficiary = await prisma.beneficiary.create({
       data: {
         name: result.data.name,
+        status,
+        notes,
       },
     });
 
