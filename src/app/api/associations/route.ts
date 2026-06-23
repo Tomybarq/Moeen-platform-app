@@ -63,6 +63,7 @@ export async function POST(request: Request) {
     const newAssociation = await prisma.association.create({
       data: {
         name: result.data.name,
+        image: result.data.image,
       },
     });
 

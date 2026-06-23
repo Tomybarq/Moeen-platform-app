@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { User, Mail, Shield, ShieldCheck, Camera, Check, Loader2 } from "lucide-react";
+import React, { useState } from "react";
+import { User, Mail, Shield, ShieldCheck, Check, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { useToast } from "@/lib/ToastContext";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 interface ProfileClientProps {
   initialUser: {
@@ -26,67 +27,9 @@ export default function ProfileClient({ initialUser, isAr }: ProfileClientProps)
   const [name, setName] = useState(initialUser.name || "");
   const [email, setEmail] = useState(initialUser.email);
   const [imagePreview, setImagePreview] = useState<string | null>(initialUser.image);
-  const [newImageBase64, setNewImageBase64] = useState<string | null>(null);
   
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-      setErrorMsg(
-        isAr
-          ? "حجم الصورة كبير جداً، يرجى اختيار صورة أقل من 10 ميجابايت"
-          : "Image size is too large. Please select a file under 10MB"
-      );
-      return;
-    }
-
-    setErrorMsg(null);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const MAX_WIDTH = 256;
-        const MAX_HEIGHT = 256;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          // Compress to JPEG with 0.8 quality (makes it extremely small, 10-20KB)
-          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-          setImagePreview(dataUrl);
-          setNewImageBase64(dataUrl);
-        }
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,7 +54,7 @@ export default function ProfileClient({ initialUser, isAr }: ProfileClientProps)
         body: JSON.stringify({
           name,
           email,
-          ...(newImageBase64 ? { imageBase64: newImageBase64 } : {}),
+          image: imagePreview,
         }),
       });
 
@@ -127,7 +70,6 @@ export default function ProfileClient({ initialUser, isAr }: ProfileClientProps)
 
       // Refresh authentication context so headers update instantly
       await refreshUser();
-      setNewImageBase64(null);
     } catch (err: any) {
       setErrorMsg(err.message || (isAr ? "حدث خطأ غير متوقع" : "An unexpected error occurred"));
       showToast(err.message || (isAr ? "حدث خطأ أثناء الحفظ" : "Error saving profile"), "error");
@@ -140,26 +82,13 @@ export default function ProfileClient({ initialUser, isAr }: ProfileClientProps)
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Left side: Avatar & info preview card */}
       <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col items-center text-center">
-        {/* Avatar Input */}
-        <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-          <div className="w-28 h-28 rounded-full border-4 border-white dark:border-[#1E293B] shadow-lg overflow-hidden bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 transition-transform duration-300 hover:scale-105">
-            {imagePreview ? (
-              <img src={imagePreview} alt={name || "User Avatar"} className="w-full h-full object-cover" />
-            ) : (
-              <User size={48} className="stroke-[1.5]" />
-            )}
-          </div>
-          {/* Hover Overlay */}
-          <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-350">
-            <Camera className="text-white" size={24} />
-          </div>
-          {/* File Input */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            className="hidden"
+        {/* Avatar Upload */}
+        <div className="w-full mb-4">
+          <ImageUpload
+            value={imagePreview}
+            onChange={setImagePreview}
+            type="avatars"
+            isAr={isAr}
           />
         </div>
 

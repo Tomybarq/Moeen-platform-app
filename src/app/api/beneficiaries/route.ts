@@ -88,6 +88,7 @@ export async function POST(request: Request) {
         name: result.data.name,
         status,
         notes,
+        image: result.data.image,
       },
     });
 

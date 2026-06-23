@@ -39,12 +39,16 @@ export const registerSchema = z.object({
 
 export const associationSchema = z.object({
   name: z.string().min(3, { message: "اسم الجمعية يجب أن يكون 3 أحرف على الأقل" }),
+  image: z.string().optional().nullable(),
 });
 
 export const marketerSchema = z.object({
   name: z.string().min(3, { message: "اسم المسوق يجب أن يكون 3 أحرف على الأقل" }),
+  image: z.string().optional().nullable(),
 });
 
 export const beneficiarySchema = z.object({
   name: z.string().min(3, { message: "اسم المستفيد يجب أن يكون 3 أحرف على الأقل" }),
+  image: z.string().optional().nullable(),
 });
+

@@ -12,9 +12,9 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { name, email, imageBase64 } = body;
+    const { name, email, imageBase64, image } = body;
 
-    const updateData: { name?: string; email?: string; image?: string } = {};
+    const updateData: { name?: string; email?: string; image?: string | null } = {};
 
     if (name !== undefined) {
       if (!name.trim()) {
@@ -41,7 +41,9 @@ export async function PUT(request: Request) {
       updateData.email = emailTrimmed;
     }
 
-    if (imageBase64) {
+    if (image !== undefined) {
+      updateData.image = image;
+    } else if (imageBase64) {
       try {
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
         const buffer = Buffer.from(base64Data, "base64");

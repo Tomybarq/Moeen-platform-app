@@ -11,10 +11,12 @@ import SearchInput from "@/components/ui/SearchInput";
 import TableSkeleton from "@/components/ui/TableSkeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import { Trash2 } from "lucide-react";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 interface Association {
   id: number;
   name: string;
+  image?: string | null;
   createdAt: string;
 }
 
@@ -42,6 +44,7 @@ export default function AssociationsClient({ locale }: AssociationsClientProps) 
   const [modalOpen, setModalOpen] = useState(false);
   const [editItem, setEditItem] = useState<Association | null>(null);
   const [formName, setFormName] = useState("");
+  const [formImage, setFormImage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Delete state
@@ -81,12 +84,14 @@ export default function AssociationsClient({ locale }: AssociationsClientProps) 
   const handleOpenAdd = () => {
     setEditItem(null);
     setFormName("");
+    setFormImage(null);
     setModalOpen(true);
   };
 
   const handleOpenEdit = (item: Association) => {
     setEditItem(item);
     setFormName(item.name);
+    setFormImage(item.image || null);
     setModalOpen(true);
   };
 
@@ -107,7 +112,7 @@ export default function AssociationsClient({ locale }: AssociationsClientProps) 
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: formName }),
+        body: JSON.stringify({ name: formName, image: formImage }),
       });
       const data = await response.json();
 
@@ -224,8 +229,23 @@ export default function AssociationsClient({ locale }: AssociationsClientProps) 
                       key={assoc.id}
                       className="text-slate-700 dark:text-slate-350 hover:bg-slate-50/50 dark:hover:bg-[#1E293B]/20 transition-colors"
                     >
-                      <td className="p-4 text-slate-400 font-semibold">{(page - 1) * LIMIT + idx + 1}</td>
-                      <td className="p-4 font-medium text-slate-900 dark:text-white">{assoc.name}</td>
+                      <td className="p-4 font-semibold text-slate-400">{(page - 1) * LIMIT + idx + 1}</td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          {assoc.image ? (
+                            <img
+                              src={assoc.image}
+                              alt={assoc.name}
+                              className="w-8 h-8 rounded-xl object-cover border border-slate-100 dark:border-slate-800"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+                              <span className="text-xs font-bold">{assoc.name.charAt(0).toUpperCase()}</span>
+                            </div>
+                          )}
+                          <span className="font-medium text-slate-900 dark:text-white">{assoc.name}</span>
+                        </div>
+                      </td>
                       <td className="p-4 text-xs text-slate-500 dark:text-slate-400">
                         {new Date(assoc.createdAt).toLocaleDateString(isAr ? "ar-SA" : "en-US", {
                           year: "numeric",
@@ -278,6 +298,17 @@ export default function AssociationsClient({ locale }: AssociationsClientProps) 
         title={editItem ? (isAr ? "تعديل جمعية" : "Edit Association") : (isAr ? "إضافة جمعية جديدة" : "Add New Association")}
       >
         <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              {isAr ? "شعار أو صورة الجمعية" : "Association Logo / Image"}
+            </label>
+            <ImageUpload
+              value={formImage}
+              onChange={setFormImage}
+              type="associations"
+              isAr={isAr}
+            />
+          </div>
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
               {isAr ? "اسم الجمعية" : "Association Name"}

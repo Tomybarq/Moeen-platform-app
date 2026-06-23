@@ -78,6 +78,7 @@ model RolePermission {
 model Association {
   id        Int      @id @default(autoincrement())
   name      String
+  image     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   users     User[]
@@ -86,6 +87,7 @@ model Association {
 model Marketer {
   id        Int      @id @default(autoincrement())
   name      String
+  image     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   users     User[]
@@ -96,6 +98,7 @@ model Beneficiary {
   name      String
   status    String?
   notes     String?
+  image     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   users     User[]

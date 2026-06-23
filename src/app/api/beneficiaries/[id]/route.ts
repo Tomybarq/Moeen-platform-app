@@ -29,6 +29,7 @@ export async function PUT(
       where: { id: beneficiaryId },
       data: {
         name: result.data.name,
+        image: result.data.image,
       },
     });
 
