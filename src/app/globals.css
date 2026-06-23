@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0A5C4A;
+  --color-secondary: #F9A826;
+  --color-tertiary: #2FAB99;
+  --color-brand-neutral: #464646;
+}
+
+@variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+.dark {
+  --background: #0b0f19;
+  --foreground: #e2e8f0;
+}
+
+body {
+  font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+  transition: background-color 300ms ease, color 300ms ease;
+}

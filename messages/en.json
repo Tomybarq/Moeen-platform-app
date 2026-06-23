@@ -1,0 +1,95 @@
+{
+  "common": {
+    "appName": "Moeen Platform",
+    "appSubtitle": "Associations Portal",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "logout": "Logout",
+    "login": "Login",
+    "search": "Search...",
+    "noData": "No data available"
+  },
+  "roles": {
+    "SUPER_ADMIN": "Super Admin",
+    "CHARITY_STAFF": "Charity Staff",
+    "MARKETER": "Marketer",
+    "BENEFICIARY": "Beneficiary",
+    "USER": "User"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "associations": "Associations",
+    "beneficiaries": "Beneficiaries",
+    "marketers": "Marketers",
+    "profile": "Profile",
+    "settings": "Platform Settings",
+    "settings-general": "General Settings",
+    "settings-users": "Manage Users",
+    "settings-permissions": "Manage Permissions",
+    "theme": "Theme",
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "login": {
+    "title": "Login",
+    "subtitle": "Welcome back to Moeen Platform",
+    "email": "Email Address",
+    "password": "Password",
+    "submitBtn": "Login",
+    "errorInvalid": "Invalid email or password",
+    "errorEmpty": "Please fill in all fields",
+    "promoTitle": "Moeen Digital Platform",
+    "promoDesc": "An integrated charity and administrative system to empower and facilitate the work of charities, beneficiaries, and marketers with the highest standards of efficiency and security.",
+    "promoFeature1": "Advanced Beneficiary Management",
+    "promoFeature2": "Real-time analytics & statistics",
+    "promoFeature3": "Accurate statistical tracking"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to Moeen Platform, {name}",
+    "associationsCount": "Total Associations",
+    "beneficiariesCount": "Total Beneficiaries",
+    "marketersCount": "Total Marketers",
+    "usersCount": "Total Users"
+  },
+  "associations": {
+    "title": "Manage Associations",
+    "name": "Association Name",
+    "createdAt": "Created Date",
+    "addNew": "Add New Association",
+    "empty": "No associations added yet."
+  },
+  "beneficiaries": {
+    "title": "Manage Beneficiaries",
+    "name": "Beneficiary Name",
+    "createdAt": "Created Date",
+    "addNew": "Add New Beneficiary",
+    "empty": "No beneficiaries added yet."
+  },
+  "marketers": {
+    "title": "Manage Marketers",
+    "name": "Marketer Name",
+    "createdAt": "Created Date",
+    "addNew": "Add New Marketer",
+    "empty": "No marketers added yet."
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Manage your personal information",
+    "name": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "role": "Role",
+    "nationalId": "National ID",
+    "status": "Account Status"
+  },
+  "settings": {
+    "title": "Platform Settings",
+    "subtitle": "Configure global settings and customization",
+    "general": "General Settings",
+    "theme": "System Theme",
+    "language": "System Language"
+  }
+}

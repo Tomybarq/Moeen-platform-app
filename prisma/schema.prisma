@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int          @id @default(autoincrement())
+  email         String       @unique
+  password      String
+  name          String?
+  roleId        Int
+  role          Role         @relation(fields: [roleId], references: [id])
+  status        String       @default("active")
+  language      String       @default("ar")
+  darkMode      Boolean      @default(false)
+  image         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relationships
+  associationId Int?
+  association   Association? @relation(fields: [associationId], references: [id], onDelete: SetNull)
+  marketerId    Int?
+  marketer      Marketer?    @relation(fields: [marketerId], references: [id], onDelete: SetNull)
+  beneficiaryId Int?
+  beneficiary   Beneficiary? @relation(fields: [beneficiaryId], references: [id], onDelete: SetNull)
+  permissions   UserPermission[]
+}
+
+enum RoleType {
+  superadmin
+  admin
+  user
+}
+
+model Role {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  nameAr      String?
+  type        RoleType         @default(user)
+  permissions RolePermission[]
+  users       User[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Screen {
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  nameAr          String?
+  path            String           @unique
+  permissions     RolePermission[]
+  userPermissions UserPermission[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model RolePermission {
+  id        Int      @id @default(autoincrement())
+  roleId    Int
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  screenId  Int
+  screen    Screen   @relation(fields: [screenId], references: [id], onDelete: Cascade)
+  actions   String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roleId, screenId])
+}
+
+model Association {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+}
+
+model Marketer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+}
+
+model Beneficiary {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+}
+
+model UserPermission {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  screenId  Int
+  screen    Screen   @relation(fields: [screenId], references: [id], onDelete: Cascade)
+  actions   String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, screenId])
+}
