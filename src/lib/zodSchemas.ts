@@ -50,5 +50,23 @@ export const marketerSchema = z.object({
 export const beneficiarySchema = z.object({
   name: z.string().min(3, { message: "اسم المستفيد يجب أن يكون 3 أحرف على الأقل" }),
   image: z.string().optional().nullable(),
+  nationalId: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (val === "" ? null : val))
+    .refine(
+      (val) => !val || /^\d{10}$/.test(val),
+      { message: "رقم الهوية الوطنية يجب أن يتكون من 10 أرقام" }
+    ),
+  phone: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (val === "" ? null : val))
+    .refine(
+      (val) => !val || /^(05\d{8})$/.test(val),
+      { message: "رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" }
+    ),
 });
 

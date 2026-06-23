@@ -3,7 +3,9 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { beneficiarySchema } from "@/lib/zodSchemas";
 import { calculateLocalEligibility } from "@/lib/engine/eligibility";
-import { sendMockNotification } from "@/lib/notifications";
+import { maskSensitiveData } from "@/lib/dataMasking";
+import { logEvent } from "@/lib/eventLogger";
+import { notificationDispatcher } from "@/lib/notificationEngine";
 
 export async function GET(request: Request) {
   try {
@@ -36,8 +38,10 @@ export async function GET(request: Request) {
       prisma.beneficiary.count({ where }),
     ]);
 
+    const maskedBeneficiaries = maskSensitiveData(beneficiaries, session.role);
+
     return NextResponse.json({
-      beneficiaries,
+      beneficiaries: maskedBeneficiaries,
       total,
       page,
       limit,
@@ -90,21 +94,23 @@ export async function POST(request: Request) {
         status,
         notes,
         image: result.data.image,
+        nationalId: result.data.nationalId,
+        phone: result.data.phone,
       },
     });
 
-    // إرسال تنبيه وهمي عند إضافة مستفيد مع توضيح حالة الاستحقاق
-    await sendMockNotification({
-      userId: session.userId,
-      title: `New beneficiary registered: ${newBeneficiary.name} (Status: ${newBeneficiary.status})`,
-      titleAr: `تم تسجيل مستفيد جديد: ${newBeneficiary.name} (الحالة: ${newBeneficiary.status === "ELIGIBLE" ? "مستحق" : newBeneficiary.status === "PENDING" ? "قيد الدراسة" : "غير مستحق"})`,
-      message: `Beneficiary "${newBeneficiary.name}" has been registered. System eligibility check notes: ${newBeneficiary.notes}`,
-      messageAr: `تم تسجيل المستفيد "${newBeneficiary.name}" في النظام بنجاح. نتيجة فحص الاستحقاق التلقائي: ${newBeneficiary.notes}`,
-      type: newBeneficiary.status === "ELIGIBLE" ? "success" : newBeneficiary.status === "PENDING" ? "info" : "warning",
-      channels: ["in-app", "sms", "email"]
+    // تسجيل الحدث
+    logEvent("beneficiary.created", newBeneficiary, session.userId);
+
+    // إرسال التنبيه عبر موزع الأحداث في الخلفية
+    notificationDispatcher.emit("beneficiary.created", {
+      beneficiary: newBeneficiary,
+      sessionUserId: session.userId,
     });
 
-    return NextResponse.json({ success: true, beneficiary: newBeneficiary });
+    const maskedBeneficiary = maskSensitiveData(newBeneficiary, session.role);
+
+    return NextResponse.json({ success: true, beneficiary: maskedBeneficiary });
   } catch (error) {
     console.error("POST /api/beneficiaries error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

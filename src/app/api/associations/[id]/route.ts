@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { associationSchema } from "@/lib/zodSchemas";
+import { logEvent } from "@/lib/eventLogger";
+import { notificationDispatcher } from "@/lib/notificationEngine";
 
 export async function PUT(
   request: Request,
@@ -33,6 +35,15 @@ export async function PUT(
       },
     });
 
+    // تسجيل الحدث
+    logEvent("association.updated", updatedAssociation, session.userId);
+
+    // إرسال التنبيه عبر موزع الأحداث في الخلفية
+    notificationDispatcher.emit("association.updated", {
+      association: updatedAssociation,
+      sessionUserId: session.userId,
+    });
+
     return NextResponse.json({ success: true, association: updatedAssociation });
   } catch (error) {
     console.error("PUT /api/associations/[id] error:", error);
@@ -56,9 +67,12 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
-    await prisma.association.delete({
+    const deletedAssociation = await prisma.association.delete({
       where: { id: associationId },
     });
+
+    // تسجيل الحدث
+    logEvent("association.deleted", { id: associationId, name: deletedAssociation.name }, session.userId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

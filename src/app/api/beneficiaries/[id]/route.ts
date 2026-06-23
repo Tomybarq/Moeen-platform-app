@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { beneficiarySchema } from "@/lib/zodSchemas";
+import { maskSensitiveData } from "@/lib/dataMasking";
+import { logEvent } from "@/lib/eventLogger";
+import { notificationDispatcher } from "@/lib/notificationEngine";
 
 export async function PUT(
   request: Request,
@@ -30,10 +33,23 @@ export async function PUT(
       data: {
         name: result.data.name,
         image: result.data.image,
+        nationalId: result.data.nationalId,
+        phone: result.data.phone,
       },
     });
 
-    return NextResponse.json({ success: true, beneficiary: updatedBeneficiary });
+    // تسجيل الحدث
+    logEvent("beneficiary.updated", updatedBeneficiary, session.userId);
+
+    // إرسال التنبيه عبر موزع الأحداث في الخلفية
+    notificationDispatcher.emit("beneficiary.updated", {
+      beneficiary: updatedBeneficiary,
+      sessionUserId: session.userId,
+    });
+
+    const maskedBeneficiary = maskSensitiveData(updatedBeneficiary, session.role);
+
+    return NextResponse.json({ success: true, beneficiary: maskedBeneficiary });
   } catch (error) {
     console.error("PUT /api/beneficiaries/[id] error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -56,9 +72,12 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
-    await prisma.beneficiary.delete({
+    const deletedBeneficiary = await prisma.beneficiary.delete({
       where: { id: beneficiaryId },
     });
+
+    // تسجيل الحدث
+    logEvent("beneficiary.deleted", { id: beneficiaryId, name: deletedBeneficiary.name }, session.userId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

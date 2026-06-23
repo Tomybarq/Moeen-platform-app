@@ -95,14 +95,16 @@ model Marketer {
 }
 
 model Beneficiary {
-  id        Int      @id @default(autoincrement())
-  name      String
-  status    String?
-  notes     String?
-  image     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  users     User[]
+  id         Int      @id @default(autoincrement())
+  name       String
+  status     String?
+  notes      String?
+  image      String?
+  nationalId String?
+  phone      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  users      User[]
 }
 
 model UserPermission {
@@ -130,4 +132,17 @@ model Notification {
   type      String   @default("info") // info, success, warning, error
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model SystemEvent {
+  id        String   @id @default(cuid())
+  eventType String
+  userId    Int?
+  payload   Json
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([eventType])
+  @@index([userId])
+  @@index([createdAt])
 }

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { marketerSchema } from "@/lib/zodSchemas";
-import { sendMockNotification } from "@/lib/notifications";
+import { logEvent } from "@/lib/eventLogger";
+import { notificationDispatcher } from "@/lib/notificationEngine";
 
 export async function GET(request: Request) {
   try {
@@ -68,15 +69,13 @@ export async function POST(request: Request) {
       },
     });
 
-    // إرسال تنبيه وهمي عند إضافة مسوق
-    await sendMockNotification({
-      userId: session.userId,
-      title: `New marketer registered: ${newMarketer.name}`,
-      titleAr: `تم تسجيل مسوق جديد: ${newMarketer.name}`,
-      message: `The marketer "${newMarketer.name}" has been successfully added to the portal.`,
-      messageAr: `تمت إضافة المسوق "${newMarketer.name}" بنجاح في لوحة التحكم.`,
-      type: "success",
-      channels: ["in-app", "sms", "email"]
+    // تسجيل الحدث
+    logEvent("marketer.created", newMarketer, session.userId);
+
+    // إرسال التنبيه عبر موزع الأحداث في الخلفية
+    notificationDispatcher.emit("marketer.created", {
+      marketer: newMarketer,
+      sessionUserId: session.userId,
     });
 
     return NextResponse.json({ success: true, marketer: newMarketer });

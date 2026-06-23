@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { marketerSchema } from "@/lib/zodSchemas";
+import { logEvent } from "@/lib/eventLogger";
+import { notificationDispatcher } from "@/lib/notificationEngine";
 
 export async function PUT(
   request: Request,
@@ -33,6 +35,15 @@ export async function PUT(
       },
     });
 
+    // تسجيل الحدث
+    logEvent("marketer.updated", updatedMarketer, session.userId);
+
+    // إرسال التنبيه عبر موزع الأحداث في الخلفية
+    notificationDispatcher.emit("marketer.updated", {
+      marketer: updatedMarketer,
+      sessionUserId: session.userId,
+    });
+
     return NextResponse.json({ success: true, marketer: updatedMarketer });
   } catch (error) {
     console.error("PUT /api/marketers/[id] error:", error);
@@ -56,9 +67,12 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
-    await prisma.marketer.delete({
+    const deletedMarketer = await prisma.marketer.delete({
       where: { id: marketerId },
     });
+
+    // تسجيل الحدث
+    logEvent("marketer.deleted", { id: marketerId, name: deletedMarketer.name }, session.userId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
