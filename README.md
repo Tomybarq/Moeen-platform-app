@@ -29,23 +29,7 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel (Moeen Platform Specifics)
-
-To deploy this project on Vercel, you need to configure the following environment variables in your Vercel Project Settings:
-
-1.  **DATABASE_URL**: Your PostgreSQL connection string (e.g., from Supabase or Vercel Postgres).
-2.  **JWT_SECRET**: A long, secure random string for JWT session signing.
-
-### Steps to Deploy:
-1.  Push your code to GitHub.
-2.  Import the project in Vercel.
-3.  Add the environment variables mentioned above.
-4.  The build command is automatically set to `prisma generate && next build` via `package.json`.
-5.  Ensure your database is accessible from Vercel.
-
-### Important Note on Avatars:
-The current avatar upload system writes to the local filesystem (`public/uploads/avatars`), which is **not supported** on Vercel's serverless functions. For production, you should use an external storage service like **Supabase Storage** or **AWS S3**.
-
+## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 

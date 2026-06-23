@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -13,7 +13,7 @@
     "bcrypt": "^6.0.0",
     "jose": "^6.2.3",
     "lucide-react": "^1.17.0",
-    "next": "16.2.9",
+    "next": "^15.5.19",
     "next-intl": "^4.13.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
