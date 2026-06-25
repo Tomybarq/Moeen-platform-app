@@ -33,6 +33,7 @@ model User {
   beneficiary   Beneficiary? @relation(fields: [beneficiaryId], references: [id], onDelete: SetNull)
   permissions   UserPermission[]
   notifications Notification[]
+  assignedBeneficiaries Beneficiary[] @relation("ResearcherBeneficiaries")
 }
 
 enum RoleType {
@@ -105,6 +106,51 @@ model Beneficiary {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   users      User[]
+
+  // البيانات الاجتماعية والديموغرافية (Social & Demographic Data)
+  maritalStatus      String?
+  familyMembersCount Int?            @default(0)
+  nationalAddress    String?
+  educationLevel     String?
+  healthStatus       String?
+  healthDetails      String?
+
+  // الإطار المالي - الدخل الشهري (Financial Framework - Income)
+  jobIncome          Float?          @default(0)
+  disabilityIncome   Float?          @default(0)
+  citizenAccount     Float?          @default(0)
+  socialInsurance    Float?          @default(0)
+  otherIncome        Float?          @default(0)
+  otherIncomeSource  String?
+
+  // الإطار المالي - الالتزامات الشهرية (Financial Framework - Obligations)
+  houseRent          Float?          @default(0)
+  electricityBill    Float?          @default(0)
+  waterBill          Float?          @default(0)
+  internetBill       Float?          @default(0)
+  medicalExpenses    Float?          @default(0)
+  transportExpenses  Float?          @default(0)
+  foodExpenses       Float?          @default(0)
+  debtsMonthly       Float?          @default(0)
+  debtReason         String?
+
+  // شواهد البحث الميداني (Field Evidence)
+  buildingImage      String?
+  livingRoomImage    String?
+  kitchenImage       String?
+  rentContractFile   String?
+
+  // حالة وتوصية الباحث (Researcher Recommendation & Status)
+  finalRecommendation String?
+  statusCategory      StatusCategory?
+  researcherId        Int?
+  researcher          User?           @relation("ResearcherBeneficiaries", fields: [researcherId], references: [id], onDelete: SetNull)
+}
+
+enum StatusCategory {
+  HIGH
+  MEDIUM
+  REJECTED
 }
 
 model UserPermission {

@@ -70,3 +70,41 @@ export const beneficiarySchema = z.object({
     ),
 });
 
+export const socialResearchSchema = z.object({
+  maritalStatus: z.string().optional().nullable(),
+  familyMembersCount: z.coerce.number().min(0).default(0),
+  nationalAddress: z.string().optional().nullable(),
+  educationLevel: z.string().optional().nullable(),
+  healthStatus: z.string().optional().nullable(),
+  healthDetails: z.string().optional().nullable(),
+
+  // Financial Framework - Income
+  jobIncome: z.coerce.number().min(0).default(0),
+  disabilityIncome: z.coerce.number().min(0).default(0),
+  citizenAccount: z.coerce.number().min(0).default(0),
+  socialInsurance: z.coerce.number().min(0).default(0),
+  otherIncome: z.coerce.number().min(0).default(0),
+  otherIncomeSource: z.string().optional().nullable(),
+
+  // Financial Framework - Obligations
+  houseRent: z.coerce.number().min(0).default(0),
+  electricityBill: z.coerce.number().min(0).default(0),
+  waterBill: z.coerce.number().min(0).default(0),
+  internetBill: z.coerce.number().min(0).default(0),
+  medicalExpenses: z.coerce.number().min(0).default(0),
+  transportExpenses: z.coerce.number().min(0).default(0),
+  foodExpenses: z.coerce.number().min(0).default(0),
+  debtsMonthly: z.coerce.number().min(0).default(0),
+  debtReason: z.string().optional().nullable(),
+
+  // Field Evidence
+  buildingImage: z.string().optional().nullable(),
+  livingRoomImage: z.string().optional().nullable(),
+  kitchenImage: z.string().optional().nullable(),
+  rentContractFile: z.string().optional().nullable(),
+
+  // Recommendation & Status
+  finalRecommendation: z.string().optional().nullable(),
+  statusCategory: z.enum(["HIGH", "MEDIUM", "REJECTED"]).optional().nullable(),
+});
+
