@@ -237,7 +237,12 @@ async function main() {
   // Admin User 1: إداري النظام
   await prisma.user.upsert({
     where: { email: "admin@demo.com" },
-    update: {},
+    update: {
+      password: hashedPassword,
+      name: "إداري النظام",
+      roleId: roleAdmin.id,
+      status: "active",
+    },
     create: {
       email: "admin@demo.com",
       password: hashedPassword,
@@ -250,7 +255,12 @@ async function main() {
   // Admin User 2: مدير المنصة
   await prisma.user.upsert({
     where: { email: "manager@demo.com" },
-    update: {},
+    update: {
+      password: hashedPassword,
+      name: "مدير المنصة",
+      roleId: roleAdmin.id,
+      status: "active",
+    },
     create: {
       email: "manager@demo.com",
       password: hashedPassword,
@@ -263,7 +273,12 @@ async function main() {
   // Social Researcher User
   await prisma.user.upsert({
     where: { email: "researcher@demo.com" },
-    update: {},
+    update: {
+      password: hashedPassword,
+      name: "الباحث الاجتماعي",
+      roleId: roleResearcher.id,
+      status: "active",
+    },
     create: {
       email: "researcher@demo.com",
       password: hashedPassword,
@@ -276,7 +291,12 @@ async function main() {
   // Data Manager User
   await prisma.user.upsert({
     where: { email: "datamanager@demo.com" },
-    update: {},
+    update: {
+      password: hashedPassword,
+      name: "مدير البيانات",
+      roleId: roleDataManager.id,
+      status: "active",
+    },
     create: {
       email: "datamanager@demo.com",
       password: hashedPassword,
@@ -289,7 +309,13 @@ async function main() {
   // Association Staff User
   await prisma.user.upsert({
     where: { email: "staff@demo.com" },
-    update: {},
+    update: {
+      password: hashedPassword,
+      name: "مدير الجمعية",
+      roleId: roleStaff.id,
+      status: "active",
+      associationId: assoc1.id,
+    },
     create: {
       email: "staff@demo.com",
       password: hashedPassword,
@@ -303,7 +329,13 @@ async function main() {
   // Marketer User
   await prisma.user.upsert({
     where: { email: "marketer@demo.com" },
-    update: {},
+    update: {
+      password: hashedPassword,
+      name: "المسوق معين",
+      roleId: roleMarketer.id,
+      status: "active",
+      marketerId: marketer1.id,
+    },
     create: {
       email: "marketer@demo.com",
       password: hashedPassword,
