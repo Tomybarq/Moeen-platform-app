@@ -96,55 +96,118 @@ model Marketer {
 }
 
 model Beneficiary {
-  id         Int      @id @default(autoincrement())
-  name       String
-  status     String?
-  notes      String?
-  image      String?
-  nationalId String?
-  phone      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  users      User[]
+  id             Int             @id @default(autoincrement())
+  name           String
+  status         String?
+  notes          String?
+  image          String?
+  nationalId     String?         @unique
+  phone          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  users          User[]
+  socialResearch SocialResearch?
 
-  // البيانات الاجتماعية والديموغرافية (Social & Demographic Data)
-  maritalStatus      String?
-  familyMembersCount Int?            @default(0)
-  nationalAddress    String?
-  educationLevel     String?
-  healthStatus       String?
-  healthDetails      String?
+  // Relationships
+  researcherId   Int?
+  researcher     User?           @relation("ResearcherBeneficiaries", fields: [researcherId], references: [id], onDelete: SetNull)
+}
 
-  // الإطار المالي - الدخل الشهري (Financial Framework - Income)
-  jobIncome          Float?          @default(0)
-  disabilityIncome   Float?          @default(0)
-  citizenAccount     Float?          @default(0)
-  socialInsurance    Float?          @default(0)
-  otherIncome        Float?          @default(0)
-  otherIncomeSource  String?
+model SocialResearch {
+  id                 String      @id @default(uuid())
+  beneficiaryId      Int         @unique
+  beneficiary        Beneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+  fileNumber         String      @unique
+  visitDate          DateTime    @default(now())
+  researcherName     String
+  applicationStatus  String      // NEW, UPDATE, REFERRED
+  lastUpdateDate     DateTime?
 
-  // الإطار المالي - الالتزامات الشهرية (Financial Framework - Obligations)
-  houseRent          Float?          @default(0)
-  electricityBill    Float?          @default(0)
-  waterBill          Float?          @default(0)
-  internetBill       Float?          @default(0)
-  medicalExpenses    Float?          @default(0)
-  transportExpenses  Float?          @default(0)
-  foodExpenses       Float?          @default(0)
-  debtsMonthly       Float?          @default(0)
-  debtReason         String?
+  // Financial Summary
+  totalIncome        Float       @default(0.0)
+  totalExpenses      Float       @default(0.0)
+  netRemainingIncome Float       @default(0.0)
 
-  // شواهد البحث الميداني (Field Evidence)
-  buildingImage      String?
-  livingRoomImage    String?
-  kitchenImage       String?
-  rentContractFile   String?
+  // Environment & Housing
+  environmentType    String
+  housingType        String
+  housingOwnership   String
 
-  // حالة وتوصية الباحث (Researcher Recommendation & Status)
-  finalRecommendation String?
-  statusCategory      StatusCategory?
-  researcherId        Int?
-  researcher          User?           @relation("ResearcherBeneficiaries", fields: [researcherId], references: [id], onDelete: SetNull)
+  // Opinions & Recommendations
+  researcherOpinions Json        // Structured JSON for all opinions (sections 1, 2, 3, 4, 5, 6, finalRecommendation, caseCategory)
+  needsAssessment    Json        // Structured JSON for needs (basicNeedsJson, developmentalNeedsJson, medical, financial sponsorship, etc.)
+  proposedPrograms   Json        // Donation packages (proposedDonationPrograms)
+  
+  // Media Attachments
+  images             Json        // Object/Array containing outer, livingRoom, kitchen, roof repair urls
+  approvals          Json?       // Approvals JSON
+
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  dependents         Dependent[]
+}
+
+model Dependent {
+  id               String         @id @default(uuid())
+  socialResearchId String
+  socialResearch   SocialResearch @relation(fields: [socialResearchId], references: [id], onDelete: Cascade)
+  name             String
+  relationship     String
+  birthYear        String
+  educationLevel   String
+  healthStatus     String
+  socialStatus     String
+  employmentStatus String
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+enum ApplicationStatus {
+  NEW
+  UPDATE
+  REFERRED
+}
+
+enum MaritalStatus {
+  MARRIED
+  WIDOW
+  DIVORCED
+  ABANDONED
+  SINGLE
+}
+
+enum HealthStatus {
+  HEALTHY
+  DISABLED
+  SICK
+}
+
+enum EnvironmentType {
+  HIGRAH
+  BADIAH
+  VILLAGE
+  GOVERNORATE
+  CITY
+}
+
+enum HousingType {
+  POPULAR
+  APARTMENT
+  VILLA_FLOOR
+  ANNEX
+}
+
+enum HousingOwnership {
+  RENT
+  OWNED
+  INHERITED
+  ENDOWMENT
+}
+
+enum CaseCategory {
+  URGENT_PRIORITY
+  MEDIUM_PRIORITY
+  NOT_ELIGIBLE
 }
 
 enum StatusCategory {

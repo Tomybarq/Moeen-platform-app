@@ -41,7 +41,7 @@ export async function GET(request: Request) {
 
         while (hasMore) {
           // جلب البيانات على دفعات باستخدام Cursor-based pagination
-          const batch = await prisma.beneficiary.findMany({
+          const batch: any[] = await prisma.beneficiary.findMany({
             take: batchSize,
             skip: cursor ? 1 : 0,
             cursor: cursor ? { id: cursor.id } : undefined,

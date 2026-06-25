@@ -10,8 +10,9 @@ import Pagination from "@/components/ui/Pagination";
 import SearchInput from "@/components/ui/SearchInput";
 import TableSkeleton from "@/components/ui/TableSkeleton";
 import EmptyState from "@/components/ui/EmptyState";
-import { Trash2 } from "lucide-react";
+import { Trash2, FileText } from "lucide-react";
 import ImageUpload from "@/components/ui/ImageUpload";
+import SocialResearchWizard from "@/components/portal/beneficiaries/SocialResearchWizard";
 
 interface Beneficiary {
   id: number;
@@ -19,6 +20,8 @@ interface Beneficiary {
   image?: string | null;
   status?: string | null;
   notes?: string | null;
+  nationalId?: string | null;
+  phone?: string | null;
   createdAt: string;
 }
 
@@ -47,11 +50,16 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
   const [editItem, setEditItem] = useState<Beneficiary | null>(null);
   const [formName, setFormName] = useState("");
   const [formImage, setFormImage] = useState<string | null>(null);
+  const [formNationalId, setFormNationalId] = useState("");
+  const [formPhone, setFormPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   // Delete state
   const [deleteItem, setDeleteItem] = useState<Beneficiary | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Active social research state
+  const [activeResearchBeneficiary, setActiveResearchBeneficiary] = useState<number | null>(null);
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchData = useCallback(async (q: string, p: number) => {
@@ -87,6 +95,8 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
     setEditItem(null);
     setFormName("");
     setFormImage(null);
+    setFormNationalId("");
+    setFormPhone("");
     setModalOpen(true);
   };
 
@@ -94,6 +104,8 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
     setEditItem(item);
     setFormName(item.name);
     setFormImage(item.image || null);
+    setFormNationalId(item.nationalId || "");
+    setFormPhone(item.phone || "");
     setModalOpen(true);
   };
 
@@ -114,7 +126,12 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: formName, image: formImage }),
+        body: JSON.stringify({
+          name: formName,
+          image: formImage,
+          nationalId: formNationalId.trim() || null,
+          phone: formPhone.trim() || null,
+        }),
       });
       const data = await response.json();
 
@@ -170,6 +187,24 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
       setDeleteLoading(false);
     }
   };
+
+  if (activeResearchBeneficiary) {
+    return (
+      <div className="space-y-6">
+        <SocialResearchWizard
+          beneficiaryId={activeResearchBeneficiary}
+          locale={locale}
+          onComplete={() => {
+            setActiveResearchBeneficiary(null);
+            fetchData(search, page);
+          }}
+          onCancel={() => {
+            setActiveResearchBeneficiary(null);
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -244,7 +279,15 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
                               <span className="text-xs font-bold">{ben.name.charAt(0).toUpperCase()}</span>
                             </div>
                           )}
-                          <span className="font-medium text-slate-900 dark:text-white">{ben.name}</span>
+                          <div>
+                            <span className="font-medium text-slate-900 dark:text-white block">{ben.name}</span>
+                            {(ben.nationalId || ben.phone) && (
+                              <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 flex gap-3">
+                                {ben.nationalId && <span>🪪 {ben.nationalId}</span>}
+                                {ben.phone && <span>📞 {ben.phone}</span>}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="p-4 text-xs text-slate-500 dark:text-slate-400">
@@ -257,10 +300,19 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
                       <td className="p-4 text-end">
                         <div className="flex items-center justify-end gap-2">
                           {hasPermission(PATH, "edit") && (
-                            <EditButton
-                              label={isAr ? "تعديل" : "Edit"}
-                              onClick={() => handleOpenEdit(ben)}
-                            />
+                            <>
+                              <button
+                                onClick={() => setActiveResearchBeneficiary(ben.id)}
+                                className="p-2 text-primary dark:text-tertiary hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-xl transition-all cursor-pointer"
+                                title={isAr ? "استمارة البحث الاجتماعي" : "Social Research Form"}
+                              >
+                                <FileText size={14} />
+                              </button>
+                              <EditButton
+                                label={isAr ? "تعديل" : "Edit"}
+                                onClick={() => handleOpenEdit(ben)}
+                              />
+                            </>
                           )}
                           {hasPermission(PATH, "delete") && (
                             <button
@@ -321,6 +373,30 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
               placeholder={isAr ? "مثال: أحمد محمد العتيبي" : "e.g. Ahmad Al-Otaibi"}
               className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none"
               required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              {isAr ? "رقم الهوية الوطنية" : "National ID"}
+            </label>
+            <input
+              type="text"
+              value={formNationalId}
+              onChange={(e) => setFormNationalId(e.target.value)}
+              placeholder={isAr ? "مثال: 1012345678" : "e.g. 1012345678"}
+              className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              {isAr ? "رقم الجوال" : "Phone Number"}
+            </label>
+            <input
+              type="text"
+              value={formPhone}
+              onChange={(e) => setFormPhone(e.target.value)}
+              placeholder={isAr ? "مثال: 0512345678" : "e.g. 0512345678"}
+              className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none"
             />
           </div>
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">

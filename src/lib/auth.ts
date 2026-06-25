@@ -64,3 +64,52 @@ export async function clearSession() {
   const cookieStore = await cookies();
   cookieStore.delete("session");
 }
+
+export async function hasServerPermission(
+  userId: number,
+  screenPath: string,
+  action: string
+): Promise<boolean> {
+  const prisma = (await import("@/lib/prisma")).default;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      role: {
+        include: {
+          permissions: {
+            include: {
+              screen: true,
+            },
+          },
+        },
+      },
+      permissions: {
+        include: {
+          screen: true,
+        },
+      },
+    },
+  });
+
+  if (!user || user.status !== "active") return false;
+  if (user.role.type === "superadmin") return true;
+
+  // Check role-based permissions
+  const rolePermission = user.role.permissions.find(
+    (p) => p.screen.path === screenPath
+  );
+  if (rolePermission && rolePermission.actions.includes(action)) {
+    return true;
+  }
+
+  // Check direct user permissions (overrides)
+  const userPermission = user.permissions.find(
+    (p) => p.screen.path === screenPath
+  );
+  if (userPermission && userPermission.actions.includes(action)) {
+    return true;
+  }
+
+  return false;
+}

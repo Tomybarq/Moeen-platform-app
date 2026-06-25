@@ -61,7 +61,7 @@ export default function KPISection({
               {kpi.label}
             </span>
             <h4 className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
-              {isAr ? kpi.value.toLocaleString("ar-SA") : kpi.value}
+              {kpi.value}
             </h4>
             <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-1">
               {kpi.desc}

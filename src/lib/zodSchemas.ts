@@ -71,22 +71,46 @@ export const beneficiarySchema = z.object({
 });
 
 export const socialResearchSchema = z.object({
-  maritalStatus: z.string().optional().nullable(),
-  familyMembersCount: z.coerce.number().min(0).default(0),
-  nationalAddress: z.string().optional().nullable(),
+  // Section 1: Metadata & Core Information
+  fileNumber: z.string().min(1, { message: "رقم الملف مطلوب" }),
+  visitDate: z.string().or(z.date()).optional().nullable().transform((val) => val ? new Date(val) : null),
+  researcherName: z.string().min(3, { message: "اسم الباحث مطلوب" }),
+  applicationStatus: z.enum(["NEW", "UPDATE", "REFERRED"]),
+  lastUpdateDate: z.string().or(z.date()).optional().nullable().transform((val) => val ? new Date(val) : null),
+  fullName: z.string().min(3, { message: "الاسم الرباعي مطلوب" }),
+  nationalId: z.string().min(10, { message: "رقم الهوية الوطنية يجب أن يتكون من 10 أرقام" }),
+  birthYear: z.string().min(4, { message: "سنة الميلاد مطلوبة" }),
+  maritalStatus: z.enum(["MARRIED", "WIDOW", "DIVORCED", "ABANDONED", "SINGLE"]),
   educationLevel: z.string().optional().nullable(),
-  healthStatus: z.string().optional().nullable(),
+  healthStatus: z.enum(["HEALTHY", "DISABLED", "SICK"]),
   healthDetails: z.string().optional().nullable(),
+  phoneNumber: z.string().min(10, { message: "رقم الجوال مطلوب" }),
+  alternativePhone: z.string().optional().nullable(),
+  totalFamilyMembers: z.coerce.number().min(0).default(0),
+  nationalAddress: z.string().min(3, { message: "العنوان الوطني مطلوب" }),
+  researcherOpinionSection1: z.string().optional().nullable(),
 
-  // Financial Framework - Income
+  // Section 2: Dependents
+  dependents: z.array(z.object({
+    name: z.string().min(1, { message: "اسم التابع مطلوب" }),
+    relationship: z.string().min(1, { message: "صلة القرابة مطلوبة" }),
+    birthYear: z.string().min(4, { message: "سنة الميلاد مطلوبة" }),
+    educationLevel: z.string().optional().nullable(),
+    healthStatus: z.string().optional().nullable(),
+    socialStatus: z.string().optional().nullable(),
+    employmentStatus: z.string().optional().nullable(),
+    researcherOpinionSection2: z.string().optional().nullable(),
+  })).default([]),
+
+  // Section 3: Financial Matrix
   jobIncome: z.coerce.number().min(0).default(0),
-  disabilityIncome: z.coerce.number().min(0).default(0),
+  socialSecurity: z.coerce.number().min(0).default(0),
   citizenAccount: z.coerce.number().min(0).default(0),
-  socialInsurance: z.coerce.number().min(0).default(0),
-  otherIncome: z.coerce.number().min(0).default(0),
-  otherIncomeSource: z.string().optional().nullable(),
+  disabilitySupport: z.coerce.number().min(0).default(0),
+  otherCharitySupport: z.coerce.number().min(0).default(0),
+  otherAssetsIncome: z.any().optional().nullable(),
+  totalIncome: z.coerce.number().min(0).default(0),
 
-  // Financial Framework - Obligations
   houseRent: z.coerce.number().min(0).default(0),
   electricityBill: z.coerce.number().min(0).default(0),
   waterBill: z.coerce.number().min(0).default(0),
@@ -94,17 +118,45 @@ export const socialResearchSchema = z.object({
   medicalExpenses: z.coerce.number().min(0).default(0),
   transportExpenses: z.coerce.number().min(0).default(0),
   foodExpenses: z.coerce.number().min(0).default(0),
-  debtsMonthly: z.coerce.number().min(0).default(0),
+  scheduledDebts: z.coerce.number().min(0).default(0),
   debtReason: z.string().optional().nullable(),
+  debtRepaymentPeriod: z.string().optional().nullable(),
+  totalExpenses: z.coerce.number().min(0).default(0),
+  netRemainingIncome: z.coerce.number().default(0),
+  researcherOpinionSection3: z.string().optional().nullable(),
 
-  // Field Evidence
-  buildingImage: z.string().optional().nullable(),
+  // Section 4: Environment & Housing
+  environmentType: z.enum(["HIGRAH", "BADIAH", "VILLAGE", "GOVERNORATE", "CITY"]),
+  housingType: z.enum(["POPULAR", "APARTMENT", "VILLA_FLOOR", "ANNEX"]),
+  housingOwnership: z.enum(["RENT", "OWNED", "INHERITED", "ENDOWMENT"]),
+  researcherOpinionSection4: z.string().optional().nullable(),
+
+  // Section 5 & 6: Needs
+  financialSponsorshipAmount: z.coerce.number().min(0).default(0),
+  financialSponsorshipJustification: z.string().optional().nullable(),
+  foodBasketSize: z.string().optional().nullable(),
+  foodBasketFrequency: z.string().optional().nullable(),
+  babyMilk: z.boolean().default(false),
+  sanitaryTools: z.boolean().default(false),
+  unpaidElectricity: z.coerce.number().min(0).default(0),
+  unpaidWater: z.coerce.number().min(0).default(0),
+  rentReliefAmount: z.coerce.number().min(0).default(0),
+  medicalDiseaseType: z.string().optional().nullable(),
+  medicalNeedType: z.string().optional().nullable(),
+  estimatedMedicalCost: z.coerce.number().min(0).default(0),
+  basicNeedsJson: z.any().optional().nullable(),
+  developmentalNeedsJson: z.any().optional().nullable(),
+  researcherOpinionSection5: z.string().optional().nullable(),
+  researcherOpinionSection6: z.string().optional().nullable(),
+
+  // Section 7 & 8: Allocation, Media & Approvals
+  proposedDonationPrograms: z.any().optional().nullable(),
+  buildingOuterImage: z.string().optional().nullable(),
   livingRoomImage: z.string().optional().nullable(),
   kitchenImage: z.string().optional().nullable(),
-  rentContractFile: z.string().optional().nullable(),
-
-  // Recommendation & Status
+  roofRepairImage: z.string().optional().nullable(),
   finalRecommendation: z.string().optional().nullable(),
-  statusCategory: z.enum(["HIGH", "MEDIUM", "REJECTED"]).optional().nullable(),
+  caseCategory: z.enum(["URGENT_PRIORITY", "MEDIUM_PRIORITY", "NOT_ELIGIBLE"]),
+  approvals: z.any().optional().nullable(),
 });
 

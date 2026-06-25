@@ -85,11 +85,20 @@ export async function applyRowLevelSecurity(
       association: { id: associationId },
       marketer: {}, // يمكنه استعراض المسوقين لكن لا يمكنه تعديلهم (يتم التحقق من التعديل عبر الصلاحيات)
       beneficiary: {
-        users: {
-          some: {
-            associationId,
+        OR: [
+          {
+            users: {
+              some: {
+                associationId,
+              },
+            },
           },
-        },
+          {
+            researcher: {
+              associationId,
+            },
+          },
+        ],
       },
       user: { associationId },
       notification: {
@@ -112,11 +121,20 @@ export async function applyRowLevelSecurity(
       association: { id: 0 }, // لا يسمح للمسوق بالوصول للجمعيات
       marketer: { id: marketerId },
       beneficiary: {
-        users: {
-          some: {
-            marketerId,
+        OR: [
+          {
+            users: {
+              some: {
+                marketerId,
+              },
+            },
           },
-        },
+          {
+            researcher: {
+              marketerId,
+            },
+          },
+        ],
       },
       user: {
         OR: [{ id: userId }, { marketerId }],
@@ -137,11 +155,20 @@ export async function applyRowLevelSecurity(
       marketer: { id: 0 },
       beneficiary: user.associationId
         ? {
-            users: {
-              some: {
-                associationId: user.associationId,
+            OR: [
+              {
+                users: {
+                  some: {
+                    associationId: user.associationId,
+                  },
+                },
               },
-            },
+              {
+                researcher: {
+                  associationId: user.associationId,
+                },
+              },
+            ],
           }
         : {}, // باحث مستقل أو عالمي يرى الجميع
       user: { id: userId },

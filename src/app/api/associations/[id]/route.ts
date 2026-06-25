@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
+import { getSession, hasServerPermission } from "@/lib/auth";
+import { applyRowLevelSecurity } from "@/lib/auth-rls";
 import { associationSchema } from "@/lib/zodSchemas";
 import { logEvent } from "@/lib/eventLogger";
 import { notificationDispatcher } from "@/lib/notificationEngine";
@@ -15,16 +16,37 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // 1. التحقق من صلاحية التعديل
+    const hasPerm = await hasServerPermission(session.userId, "/portal/associations", "edit");
+    if (!hasPerm) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { id } = await params;
     const associationId = parseInt(id);
     if (isNaN(associationId)) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
+    // 2. التحقق من قيود أمن مستوى الصف (RLS)
+    const rlsFilters = await applyRowLevelSecurity(session.userId, session.role);
+    const existingAssociation = await prisma.association.findFirst({
+      where: {
+        AND: [
+          { id: associationId },
+          rlsFilters.association
+        ]
+      }
+    });
+
+    if (!existingAssociation) {
+      return NextResponse.json({ error: "الجمعية غير موجودة أو غير مصرح لك بالوصول إليها" }, { status: 404 });
+    }
+
     const body = await request.json();
     const result = associationSchema.safeParse(body);
     if (!result.success) {
-      return NextResponse.json({ error: result.error.errors[0].message }, { status: 400 });
+      return NextResponse.json({ error: result.error.issues[0].message }, { status: 400 });
     }
 
     const updatedAssociation = await prisma.association.update({
@@ -61,10 +83,31 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // 1. التحقق من صلاحية الحذف
+    const hasPerm = await hasServerPermission(session.userId, "/portal/associations", "delete");
+    if (!hasPerm) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { id } = await params;
     const associationId = parseInt(id);
     if (isNaN(associationId)) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+    }
+
+    // 2. التحقق من قيود أمن مستوى الصف (RLS)
+    const rlsFilters = await applyRowLevelSecurity(session.userId, session.role);
+    const existingAssociation = await prisma.association.findFirst({
+      where: {
+        AND: [
+          { id: associationId },
+          rlsFilters.association
+        ]
+      }
+    });
+
+    if (!existingAssociation) {
+      return NextResponse.json({ error: "الجمعية غير موجودة أو غير مصرح لك بالوصول إليها" }, { status: 404 });
     }
 
     const deletedAssociation = await prisma.association.delete({
