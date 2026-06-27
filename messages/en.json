@@ -91,5 +91,20 @@
     "general": "General Settings",
     "theme": "System Theme",
     "language": "System Language"
+  },
+  "Landing": {
+    "title": "Moeen Digital Platform | Integrated System for Social Research & Charity Marketing",
+    "headline": "Automating Social Research & Empowering Marketing Campaigns in One Platform",
+    "subheadline": "An integrated cloud digital system allowing charity associations in KSA to instantly manage and store social research data, and generate smart marketing packages supporting decision-makers and marketers.",
+    "cta_primary": "Contact Us Now",
+    "features_title": "Why Moeen Digital Platform?",
+    "feature_1_title": "Instant Digital Research Storage",
+    "feature_1_desc": "Upload and document social research forms in the field, saving them in a secure, locally compliant cloud database.",
+    "feature_2_title": "Live Decision Boards",
+    "feature_2_desc": "Read eligibility results and social indicators directly and smoothly to assist charity managers.",
+    "feature_3_title": "Empowering Marketers",
+    "feature_3_desc": "Generate and distribute marketing packages for social cases easily to increase fundraising efficiency.",
+    "contact_title": "Start the Digital Transformation of Your Charity Now",
+    "contact_subtitle": "Connect directly with the executive management team at Moeen Digital Trading Enterprise for integration and deployment."
   }
 }
