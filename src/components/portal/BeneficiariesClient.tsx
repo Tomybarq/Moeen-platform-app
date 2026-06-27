@@ -12,7 +12,22 @@ import TableSkeleton from "@/components/ui/TableSkeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import { Trash2, FileText } from "lucide-react";
 import ImageUpload from "@/components/ui/ImageUpload";
-import SocialResearchWizard from "@/components/portal/beneficiaries/SocialResearchWizard";
+import dynamic from "next/dynamic";
+
+const SocialResearchWizard = dynamic(
+  () => import("@/components/portal/beneficiaries/SocialResearchWizard"),
+  {
+    loading: () => (
+      <div className="p-12 text-center flex flex-col items-center gap-3 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold animate-pulse">
+          جاري تحميل استمارة البحث الاجتماعي...
+        </p>
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 interface Beneficiary {
   id: number;
@@ -52,6 +67,7 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
   const [formImage, setFormImage] = useState<string | null>(null);
   const [formNationalId, setFormNationalId] = useState("");
   const [formPhone, setFormPhone] = useState("");
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
   // Delete state
@@ -97,6 +113,7 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
     setFormImage(null);
     setFormNationalId("");
     setFormPhone("");
+    setFormErrors({});
     setModalOpen(true);
   };
 
@@ -106,16 +123,37 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
     setFormImage(item.image || null);
     setFormNationalId(item.nationalId || "");
     setFormPhone(item.phone || "");
+    setFormErrors({});
     setModalOpen(true);
+  };
+
+  const validateField = (field: string, value: string) => {
+    let error = "";
+    if (field === "name") {
+      if (value.trim().length < 3) {
+        error = isAr ? "اسم المستفيد يجب أن يكون 3 أحرف على الأقل" : "Beneficiary name must be at least 3 characters";
+      }
+    } else if (field === "nationalId") {
+      if (value.trim() && !/^\d{10}$/.test(value.trim())) {
+        error = isAr ? "رقم الهوية الوطنية يجب أن يتكون من 10 أرقام" : "National ID must be exactly 10 digits";
+      }
+    } else if (field === "phone") {
+      if (value.trim() && !/^(05\d{8})$/.test(value.trim())) {
+        error = isAr ? "رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" : "Phone must start with 05 and be 10 digits";
+      }
+    }
+    setFormErrors((prev) => ({ ...prev, [field]: error }));
+    return !error;
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formName.trim().length < 3) {
-      showToast(
-        isAr ? "اسم المستفيد يجب أن يكون 3 أحرف على الأقل" : "Beneficiary name must be at least 3 characters",
-        "error"
-      );
+    const isNameValid = validateField("name", formName);
+    const isIdValid = validateField("nationalId", formNationalId);
+    const isPhoneValid = validateField("phone", formPhone);
+
+    if (!isNameValid || !isIdValid || !isPhoneValid) {
+      showToast(isAr ? "يرجى تصحيح الأخطاء في النموذج" : "Please correct form errors", "error");
       return;
     }
 
@@ -369,11 +407,24 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
             <input
               type="text"
               value={formName}
-              onChange={(e) => setFormName(e.target.value)}
+              onChange={(e) => {
+                setFormName(e.target.value);
+                if (formErrors.name) setFormErrors((prev) => ({ ...prev, name: "" }));
+              }}
+              onBlur={() => validateField("name", formName)}
               placeholder={isAr ? "مثال: أحمد محمد العتيبي" : "e.g. Ahmad Al-Otaibi"}
-              className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none"
+              className={`w-full px-4 py-2.5 text-xs rounded-xl border bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:ring-2 focus:outline-none transition-all ${
+                formErrors.name
+                  ? "border-rose-500 focus:ring-rose-500/20 focus:border-rose-500"
+                  : "border-slate-200 dark:border-slate-800 focus:ring-primary/20 focus:border-primary"
+              }`}
               required
             />
+            {formErrors.name && (
+              <p className="text-[10px] font-bold text-rose-500 animate-slide-in mt-1">
+                {formErrors.name}
+              </p>
+            )}
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
@@ -381,11 +432,26 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
             </label>
             <input
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={formNationalId}
-              onChange={(e) => setFormNationalId(e.target.value)}
+              onChange={(e) => {
+                setFormNationalId(e.target.value);
+                if (formErrors.nationalId) setFormErrors((prev) => ({ ...prev, nationalId: "" }));
+              }}
+              onBlur={() => validateField("nationalId", formNationalId)}
               placeholder={isAr ? "مثال: 1012345678" : "e.g. 1012345678"}
-              className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none"
+              className={`w-full px-4 py-2.5 text-xs rounded-xl border bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:ring-2 focus:outline-none transition-all ${
+                formErrors.nationalId
+                  ? "border-rose-500 focus:ring-rose-500/20 focus:border-rose-500"
+                  : "border-slate-200 dark:border-slate-800 focus:ring-primary/20 focus:border-primary"
+              }`}
             />
+            {formErrors.nationalId && (
+              <p className="text-[10px] font-bold text-rose-500 animate-slide-in mt-1">
+                {formErrors.nationalId}
+              </p>
+            )}
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
@@ -393,11 +459,26 @@ export default function BeneficiariesClient({ locale }: BeneficiariesClientProps
             </label>
             <input
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={formPhone}
-              onChange={(e) => setFormPhone(e.target.value)}
+              onChange={(e) => {
+                setFormPhone(e.target.value);
+                if (formErrors.phone) setFormErrors((prev) => ({ ...prev, phone: "" }));
+              }}
+              onBlur={() => validateField("phone", formPhone)}
               placeholder={isAr ? "مثال: 0512345678" : "e.g. 0512345678"}
-              className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none"
+              className={`w-full px-4 py-2.5 text-xs rounded-xl border bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:ring-2 focus:outline-none transition-all ${
+                formErrors.phone
+                  ? "border-rose-500 focus:ring-rose-500/20 focus:border-rose-500"
+                  : "border-slate-200 dark:border-slate-800 focus:ring-primary/20 focus:border-primary"
+              }`}
             />
+            {formErrors.phone && (
+              <p className="text-[10px] font-bold text-rose-500 animate-slide-in mt-1">
+                {formErrors.phone}
+              </p>
+            )}
           </div>
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <button

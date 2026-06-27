@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #0A5C4A;
-  --color-secondary: #F9A826;
-  --color-tertiary: #2FAB99;
-  --color-brand-neutral: #464646;
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-tertiary: var(--color-tertiary);
+  --color-brand-neutral: var(--color-brand-neutral);
 }
 
 @variant dark (&:where(.dark, .dark *));
@@ -12,11 +12,19 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+  --color-primary: #0A5C4A;
+  --color-secondary: #F9A826;
+  --color-tertiary: #2FAB99;
+  --color-brand-neutral: #464646;
 }
 
 .dark {
   --background: #0b0f19;
   --foreground: #e2e8f0;
+  --color-primary: #14b8a6;
+  --color-secondary: #fbbf24;
+  --color-tertiary: #2dd4bf;
+  --color-brand-neutral: #94a3b8;
 }
 
 body {
@@ -25,3 +33,27 @@ body {
   color: var(--foreground) !important;
   transition: background-color 300ms ease, color 300ms ease;
 }
+
+/* Safe areas helper classes for mobile responsiveness and notches */
+.safe-padding-x {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+.safe-padding-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Global support for reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    background-attachment: initial !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}
+

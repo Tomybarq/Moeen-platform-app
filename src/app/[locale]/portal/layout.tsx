@@ -9,6 +9,9 @@ import { AuthProvider, UserInfo } from "@/lib/AuthContext";
 import { ToastProvider, useToast } from "@/lib/ToastContext";
 import { useTheme } from "@/components/providers/ThemeProvider";
 
+import { LayoutDashboard, Building2, Users2, TrendingUp, User } from "lucide-react";
+import Link from "next/link";
+
 function PortalInnerLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
   const locale = (params?.locale as string) || "ar";
@@ -50,7 +53,7 @@ function PortalInnerLayout({ children }: { children: React.ReactNode }) {
         if (active && data?.user) {
           setUser(data.user);
           setLoading(false);
-
+ 
           // Apply theme preference from database
           if (data.user.darkMode !== undefined) {
             setTheme(data.user.darkMode ? "dark" : "light");
@@ -137,6 +140,26 @@ function PortalInnerLayout({ children }: { children: React.ReactNode }) {
   const allowed = user?.allowedScreens || [];
   const isAuthorized = cleanPathname === "/portal/profile" || allowed.includes(cleanPathname);
 
+  const isActive = (href: string, exact?: boolean) => {
+    if (exact) return pathname === href;
+    return pathname.startsWith(href);
+  };
+
+  const navItems = [
+    { href: `/${locale}/portal`, icon: LayoutDashboard, label: tNav("dashboard"), exact: true },
+    { href: `/${locale}/portal/associations`, icon: Building2, label: tNav("associations") },
+    { href: `/${locale}/portal/beneficiaries`, icon: Users2, label: tNav("beneficiaries") },
+    { href: `/${locale}/portal/marketers`, icon: TrendingUp, label: tNav("marketers") },
+    { href: `/${locale}/portal/profile`, icon: User, label: locale === "ar" ? "الحساب" : "Profile" },
+  ];
+
+  const filteredNavItems = allowed.length > 0
+    ? navItems.filter((item) => {
+        const dbPath = item.href.replace(/^\/[a-z]{2}/, "") || "/";
+        return allowed.includes(dbPath) || dbPath === "/portal/profile";
+      })
+    : navItems;
+
   return (
     <AuthProvider user={user} loading={loading} refreshUser={refreshUser}>
       <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-800 dark:text-[#E2E8F0] flex transition-colors duration-300">
@@ -172,9 +195,29 @@ function PortalInnerLayout({ children }: { children: React.ReactNode }) {
         {/* Main content wrapper */}
         <div className="flex-1 flex flex-col min-w-0 min-h-screen">
           <Header locale={locale} onMenuClick={() => setSidebarOpen(true)} />
-          <main className="flex-1 p-6 overflow-y-auto">
+          <main className="flex-1 p-6 overflow-y-auto safe-padding-x safe-padding-bottom pb-20 lg:pb-6">
             {isAuthorized ? children : null}
           </main>
+
+          {/* Mobile Bottom Navigation Bar */}
+          <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-[#0F172A] border-t border-slate-200 dark:border-slate-800 flex items-center justify-around px-2 z-30 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_-2px_10px_rgba(0,0,0,0.3)] transition-colors duration-300">
+            {filteredNavItems.map((item) => {
+              const active = isActive(item.href, item.exact);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-all ${
+                    active ? "text-primary dark:text-tertiary font-bold animate-pulse-subtle" : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
+                  }`}
+                >
+                  <Icon size={18} strokeWidth={active ? 2.2 : 1.8} className={active ? "text-primary dark:text-tertiary" : "text-slate-400 dark:text-slate-500"} />
+                  <span className="mt-1 truncate max-w-full text-[10px]">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
       </div>
     </AuthProvider>

@@ -44,6 +44,7 @@ export default function MarketersClient({ locale }: MarketersClientProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editItem, setEditItem] = useState<Marketer | null>(null);
   const [formName, setFormName] = useState("");
+  const [formNameError, setFormNameError] = useState("");
   const [formImage, setFormImage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -84,6 +85,7 @@ export default function MarketersClient({ locale }: MarketersClientProps) {
   const handleOpenAdd = () => {
     setEditItem(null);
     setFormName("");
+    setFormNameError("");
     setFormImage(null);
     setModalOpen(true);
   };
@@ -91,13 +93,27 @@ export default function MarketersClient({ locale }: MarketersClientProps) {
   const handleOpenEdit = (item: Marketer) => {
     setEditItem(item);
     setFormName(item.name);
+    setFormNameError("");
     setFormImage(item.image || null);
     setModalOpen(true);
+  };
+
+  const handleNameBlur = () => {
+    if (formName.trim().length < 3) {
+      setFormNameError(
+        isAr ? "اسم المسوق يجب أن يكون 3 أحرف على الأقل" : "Marketer name must be at least 3 characters"
+      );
+    } else {
+      setFormNameError("");
+    }
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formName.trim().length < 3) {
+      setFormNameError(
+        isAr ? "اسم المسوق يجب أن يكون 3 أحرف على الأقل" : "Marketer name must be at least 3 characters"
+      );
       showToast(
         isAr ? "اسم المسوق يجب أن يكون 3 أحرف على الأقل" : "Marketer name must be at least 3 characters",
         "error"
@@ -315,11 +331,24 @@ export default function MarketersClient({ locale }: MarketersClientProps) {
             <input
               type="text"
               value={formName}
-              onChange={(e) => setFormName(e.target.value)}
+              onChange={(e) => {
+                setFormName(e.target.value);
+                if (formNameError) setFormNameError("");
+              }}
+              onBlur={handleNameBlur}
               placeholder={isAr ? "مثال: مؤسسة معين التسويقية" : "e.g. Moeen Marketing"}
-              className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none"
+              className={`w-full px-4 py-2.5 text-xs rounded-xl border bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:ring-2 focus:outline-none transition-all ${
+                formNameError
+                  ? "border-rose-500 focus:ring-rose-500/20 focus:border-rose-500"
+                  : "border-slate-200 dark:border-slate-800 focus:ring-primary/20 focus:border-primary"
+              }`}
               required
             />
+            {formNameError && (
+              <p className="text-[10px] font-bold text-rose-500 animate-slide-in mt-1">
+                {formNameError}
+              </p>
+            )}
           </div>
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <button
